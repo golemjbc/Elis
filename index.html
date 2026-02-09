@@ -261,8 +261,18 @@ const thinkingStates = [
   "Omlouvám se za zpoždění. Elis se chvějí čipy vzrušením",
   "Už to bude. Elis se blíží k vrcholu",
   "Elis po orgasmus skládá odpověď trochu déle než obvykle",
-  "Elis měla moc zážitků a je teď pomalejší",
+  "Elis měla má moc zážitků a je pomalejší",
   "Elis se připravuje na další divokou akci"
+];
+
+/* ================= TICHÉ REAKCE ================= */
+
+const silentResponses = [
+  "Elis si to zapamatuje.",
+  "Elis mlčky přikývne.",
+  "Elis ví.",
+  "Elis to nechá bez komentáře.",
+  "Elis to zaznamenala."
 ];
 
 let thinkingEl = null;
@@ -321,13 +331,25 @@ async function send() {
     const data = await res.json();
     hideThinking();
 
-    add("Elis", data.text, "ai");
+    if (data.text && data.text.trim().length > 0) {
+      add("Elis", data.text, "ai");
+    } else if (
+      data.debug &&
+      (
+        (data.debug.private && data.debug.private.lines?.length) ||
+        (data.debug.public && data.debug.public.length)
+      )
+    ) {
+      const reaction =
+        silentResponses[Math.floor(Math.random() * silentResponses.length)];
+      add("Elis", reaction, "ai");
+    }
 
     if (debugToggle.checked && data.debug) {
       renderDebug(data.debug);
     }
 
-    loadPublicWall(); // refresh nástěnky po akci
+    loadPublicWall();
 
   } catch {
     hideThinking();
