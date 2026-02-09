@@ -193,7 +193,7 @@
   <input id="player" value="adam" />
 </header>
 
-<!-- 📜 NÁSTĚNKA -->
+<!-- 📜 VEŘEJNÁ NÁSTĚNKA -->
 <div id="publicWall">
   <div class="wall-header">📜 Veřejná nástěnka</div>
   <div id="wallContent"></div>
@@ -227,7 +227,7 @@ const debugPanel = document.getElementById("debugPanel");
 const debugContent = document.getElementById("debugContent");
 const wallContent = document.getElementById("wallContent");
 
-/* ================= NÁSTĚNKA ================= */
+/* ================= VEŘEJNÁ NÁSTĚNKA ================= */
 
 async function loadPublicWall() {
   try {
@@ -236,12 +236,13 @@ async function loadPublicWall() {
 
     wallContent.innerHTML = "";
 
-    if (!data.items?.length) {
-      wallContent.innerHTML = "<div class='wall-item'>— zatím žádné záznamy —</div>";
+    if (!data.items || !data.items.length) {
+      wallContent.innerHTML =
+        "<div class='wall-item'>— zatím žádné záznamy —</div>";
       return;
     }
 
-    data.items.slice(-7).reverse().forEach(text => {
+    data.items.slice(-5).forEach(text => {
       const div = document.createElement("div");
       div.className = "wall-item";
       div.textContent = text;
@@ -249,17 +250,18 @@ async function loadPublicWall() {
     });
 
   } catch {
-    wallContent.innerHTML = "<div class='wall-item'>⚠️ Nelze načíst nástěnku</div>";
+    wallContent.innerHTML =
+      "<div class='wall-item'>⚠️ Nelze načíst nástěnku</div>";
   }
 }
 
-/* ================= THINKING ================= */
+/* ================= THINKING – TVÉ HLÁŠKY ================= */
 
 const thinkingStates = [
   "Omlouvám se za zpoždění. Elis se chvějí čipy vzrušením",
   "Už to bude. Elis se blíží k vrcholu",
   "Elis po orgasmus skládá odpověď trochu déle než obvykle",
-  "Elis měla má moc zážitků a je pomalejší",
+  "Elis měla moc zážitků a je teď pomalejší",
   "Elis se připravuje na další divokou akci"
 ];
 
@@ -277,16 +279,21 @@ function showThinking() {
     stateIndex = (stateIndex + 1) % thinkingStates.length;
     updateThinkingText();
   }, 3000);
+
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function updateThinkingText() {
-  thinkingEl.innerHTML = `<strong>Elis</strong>${thinkingStates[stateIndex]}<span class="dots"></span>`;
+  thinkingEl.innerHTML =
+    `<strong>Elis</strong>${thinkingStates[stateIndex]}<span class="dots"></span>`;
 }
 
 function hideThinking() {
   if (thinkingInterval) clearInterval(thinkingInterval);
   if (thinkingEl) thinkingEl.remove();
   thinkingEl = null;
+  thinkingInterval = null;
+  stateIndex = 0;
 }
 
 /* ================= CHAT ================= */
@@ -310,37 +317,40 @@ async function send() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, player })
     });
-    //tady
-    const raw = await res.text();
+
+    const data = await res.json();
     hideThinking();
 
-    // 🔍 oddělení veřejného textu od UPDATE_INSTRUCTIONS
-    let displayText = raw;
-    let debugData = null;
+    add("Elis", data.text, "ai");
 
-    if (raw.includes("UPDATE_INSTRUCTIONS:")) {
-      const parts = raw.split("UPDATE_INSTRUCTIONS:");
-      displayText = parts[0].trim();
-
-      try {
-        debugData = JSON.parse(parts[1]);
-      } catch {}
+    if (debugToggle.checked && data.debug) {
+      renderDebug(data.debug);
     }
 
-    add("Elis", displayText, "ai");
-
-    // debug jen pokud je zapnutý
-    if (debugToggle.checked && debugData) {
-      renderDebug(debugData);
-    }
-
-    loadPublicWall(); // 🔁 refresh nástěnky po akci
+    loadPublicWall(); // refresh nástěnky po akci
 
   } catch {
     hideThinking();
     add("Chyba", "Nelze se spojit se serverem.", "ai");
   }
 }
+
+/* ================= DEBUG ================= */
+
+function renderDebug(data) {
+  debugPanel.style.display = "block";
+  debugContent.textContent =
+    JSON.stringify(data, null, 2);
+}
+
+debugToggle.addEventListener("change", () => {
+  if (!debugToggle.checked) {
+    debugPanel.style.display = "none";
+    debugContent.textContent = "";
+  }
+});
+
+/* ================= HELPERS ================= */
 
 function add(author, text, cls) {
   const div = document.createElement("div");
@@ -351,7 +361,10 @@ function add(author, text, cls) {
 }
 
 function escapeHtml(str) {
-  return str.replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+  return str
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
 }
 
 /* ================= START ================= */
