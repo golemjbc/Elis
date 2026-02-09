@@ -43,14 +43,67 @@
       overflow-y: auto;
     }
 
+    /* =========================
+       💬 CHAT BUBLINY
+       ========================= */
     .msg {
+      max-width: 85%;
+      padding: 10px 12px;
+      border-radius: 12px;
       margin-bottom: 12px;
-      line-height: 1.4;
+      word-wrap: break-word;
+      animation: fadeIn 0.2s ease-out;
     }
 
-    .user { color: #9ad; }
-    .ai { color: #f5f5f5; }
+    .msg.user {
+      background: #1e2a3a;
+      color: #cfe4ff;
+      margin-left: auto;
+      border-bottom-right-radius: 4px;
+    }
 
+    .msg.ai {
+      background: #1a1a1a;
+      color: #eee;
+      margin-right: auto;
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg strong {
+      display: block;
+      font-size: 12px;
+      opacity: 0.6;
+      margin-bottom: 4px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(2px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* =========================
+       ⏳ THINKING / STAVY
+       ========================= */
+    .thinking {
+      font-style: italic;
+      opacity: 0.85;
+    }
+
+    .dots::after {
+      content: "";
+      animation: dots 1.4s infinite;
+    }
+
+    @keyframes dots {
+      0%   { content: ""; }
+      25%  { content: "."; }
+      50%  { content: ".."; }
+      75%  { content: "..."; }
+    }
+
+    /* =========================
+       FOOTER
+       ========================= */
     footer {
       display: flex;
       padding: 10px;
@@ -82,6 +135,9 @@
       background: #666;
     }
 
+    /* =========================
+       DEBUG
+       ========================= */
     #debugPanel {
       display: none;
       border-top: 1px solid #222;
@@ -106,10 +162,9 @@
     }
 
     /* =========================
-       📱 MOBILNÍ VERZE
+       📱 MOBIL
        ========================= */
     @media (max-width: 768px) {
-
       header {
         flex-wrap: wrap;
         gap: 6px;
@@ -131,7 +186,7 @@
       }
 
       footer input[type="text"] {
-        font-size: 16px; /* zabrání zoomu na iOS */
+        font-size: 16px;
         padding: 12px;
       }
 
@@ -146,7 +201,6 @@
       }
     }
 
-    /* 📵 extra malé mobily */
     @media (max-width: 480px) {
       .debug-label {
         display: none;
@@ -159,7 +213,7 @@
 
 <header>
   <span>Player:</span>
-  <input id="player" placeholder="např. adam" value="adam" />
+  <input id="player" value="adam" />
 </header>
 
 <div id="chat"></div>
@@ -197,6 +251,55 @@ const debugToggle = document.getElementById("debugToggle");
 const debugPanel = document.getElementById("debugPanel");
 const debugContent = document.getElementById("debugContent");
 
+/* =========================
+   ⏳ STAVY ELIS
+   ========================= */
+const thinkingStates = [
+  "Omlouvám se za zpoždění. Elis se chvějí čipy vzrušením",
+  "Už to bude. Elis se blíží k vrcholu",
+  "Elis po orgasmus kládá odpověď trochu déle než obvykle",
+  "Elis měla má moc zážitků a je pomalejší",
+  "Elis se připravuje na další akci"
+];
+
+let thinkingEl = null;
+let thinkingInterval = null;
+let stateIndex = 0;
+
+function showThinking() {
+  thinkingEl = document.createElement("div");
+  thinkingEl.className = "msg ai thinking";
+  chat.appendChild(thinkingEl);
+
+  updateThinkingText();
+
+  thinkingInterval = setInterval(() => {
+    stateIndex = (stateIndex + 1) % thinkingStates.length;
+    updateThinkingText();
+  }, 3000);
+
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function updateThinkingText() {
+  thinkingEl.innerHTML = `
+    <strong>Elis</strong>
+    ${thinkingStates[stateIndex]}<span class="dots"></span><br>
+    <small>(obvykle 10–15 vteřin, prosím počkej)</small>
+  `;
+}
+
+function hideThinking() {
+  if (thinkingInterval) clearInterval(thinkingInterval);
+  if (thinkingEl) thinkingEl.remove();
+  thinkingEl = null;
+  thinkingInterval = null;
+  stateIndex = 0;
+}
+
+/* =========================
+   CHAT LOGIKA
+   ========================= */
 input.addEventListener("keydown", e => {
   if (e.key === "Enter") send();
 });
@@ -209,23 +312,21 @@ async function send() {
 
   add(player, text, "user");
   input.value = "";
+  showThinking();
 
   try {
     const res = await fetch(API_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        message: text,
-        player: player
-      })
+      body: JSON.stringify({ message: text, player })
     });
 
     const raw = await res.text();
-
     let data = null;
-    try {
-      data = JSON.parse(raw);
-    } catch {}
+
+    try { data = JSON.parse(raw); } catch {}
+
+    hideThinking();
 
     if (data && typeof data === "object") {
       const mainText =
@@ -234,15 +335,15 @@ async function send() {
         data.message ??
         raw;
 
-      add("AI", mainText, "ai");
+      add("Elis", mainText, "ai");
       renderDebug(data);
-
     } else {
       add("Elis", raw, "ai");
       renderDebug(null, raw);
     }
 
-  } catch (err) {
+  } catch {
+    hideThinking();
     add("Chyba", "Nelze se spojit se serverem.", "ai");
   }
 }
@@ -261,7 +362,6 @@ function renderDebug(data, rawText = null) {
     delete dbg.text;
     delete dbg.message;
     if (dbg.display) delete dbg.display;
-
     debugContent.textContent = JSON.stringify(dbg, null, 2);
   } else {
     debugContent.textContent = rawText || "";
@@ -271,7 +371,7 @@ function renderDebug(data, rawText = null) {
 function add(author, text, cls) {
   const div = document.createElement("div");
   div.className = "msg " + cls;
-  div.innerHTML = `<strong>${author}:</strong> ${escapeHtml(text)}`;
+  div.innerHTML = `<strong>${author}</strong>${escapeHtml(text)}`;
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
