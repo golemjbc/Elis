@@ -241,7 +241,7 @@ async function loadPublicWall() {
       return;
     }
 
-    data.items.slice().reverse().forEach(text => {
+    data.items.slice(-7).reverse().forEach(text => {
       const div = document.createElement("div");
       div.className = "wall-item";
       div.textContent = text;
@@ -310,10 +310,30 @@ async function send() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, player })
     });
-
+    //tady
     const raw = await res.text();
     hideThinking();
-    add("Elis", raw, "ai");
+
+    // 🔍 oddělení veřejného textu od UPDATE_INSTRUCTIONS
+    let displayText = raw;
+    let debugData = null;
+
+    if (raw.includes("UPDATE_INSTRUCTIONS:")) {
+      const parts = raw.split("UPDATE_INSTRUCTIONS:");
+      displayText = parts[0].trim();
+
+      try {
+        debugData = JSON.parse(parts[1]);
+      } catch {}
+    }
+
+    add("Elis", displayText, "ai");
+
+    // debug jen pokud je zapnutý
+    if (debugToggle.checked && debugData) {
+      renderDebug(debugData);
+    }
+
     loadPublicWall(); // 🔁 refresh nástěnky po akci
 
   } catch {
