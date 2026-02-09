@@ -32,11 +32,6 @@
       width: 200px;
     }
 
-    header span {
-      font-size: 13px;
-      opacity: 0.7;
-    }
-
     #chat {
       flex: 1;
       padding: 16px;
@@ -48,23 +43,19 @@
       line-height: 1.4;
     }
 
-    .user {
-      color: #9ad;
-    }
-
-    .ai {
-      color: #f5f5f5;
-    }
+    .user { color: #9ad; }
+    .ai { color: #f5f5f5; }
 
     footer {
       display: flex;
       padding: 10px;
       background: #1b1b1b;
-      gap: 8px;
+      gap: 10px;
       border-top: 1px solid #222;
+      align-items: center;
     }
 
-    footer input {
+    footer input[type="text"] {
       flex: 1;
       background: #111;
       color: #eee;
@@ -85,6 +76,29 @@
     button:hover {
       background: #666;
     }
+
+    #debugPanel {
+      display: none;
+      border-top: 1px solid #222;
+      background: #0c0c0c;
+      padding: 12px;
+      max-height: 240px;
+      overflow-y: auto;
+      font-size: 12px;
+    }
+
+    #debugPanel pre {
+      white-space: pre-wrap;
+      color: #9f9;
+    }
+
+    .debug-label {
+      font-size: 13px;
+      opacity: 0.8;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
   </style>
 </head>
 
@@ -97,55 +111,123 @@
 
 <div id="chat"></div>
 
+<div id="debugPanel">
+  <strong>Debug výstup</strong>
+  <pre id="debugContent"></pre>
+</div>
+
 <footer>
-  <input id="input" placeholder="Napiš zprávu AI…" autofocus />
+  <label class="debug-label">
+    <input type="checkbox" id="debugToggle">
+    debug
+  </label>
+
+  <input id="input" type="text" placeholder="Napiš zprávu AI…" autofocus />
   <button onclick="send()">Odeslat</button>
 </footer>
 
 <script>
-  const API_URL = "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/http_trigger";
+const API_URL = "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/http_trigger";
 
-  const chat = document.getElementById("chat");
-  const input = document.getElementById("input");
-  const playerInput = document.getElementById("player");
+const chat = document.getElementById("chat");
+const input = document.getElementById("input");
+const playerInput = document.getElementById("player");
+const debugToggle = document.getElementById("debugToggle");
+const debugPanel = document.getElementById("debugPanel");
+const debugContent = document.getElementById("debugContent");
 
-  input.addEventListener("keydown", e => {
-    if (e.key === "Enter") send();
-  });
+input.addEventListener("keydown", e => {
+  if (e.key === "Enter") send();
+});
 
-  async function send() {
-    const text = input.value.trim();
-    if (!text) return;
+async function send() {
+  const text = input.value.trim();
+  if (!text) return;
 
-    const player = playerInput.value.trim() || "adam";
+  const player = playerInput.value.trim() || "adam";
 
-    add(player, text, "user");
-    input.value = "";
+  add(player, text, "user");
+  input.value = "";
 
+  try {
+    const res = await fetch(API_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        message: text,
+        player: player
+      })
+    });
+
+    const raw = await res.text();
+
+    // 🔍 pokus o JSON parse
+    let data = null;
     try {
-      const res = await fetch(API_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          message: text,
-          player: player
-        })
-      });
-
-      const reply = await res.text();
-      add("AI", reply, "ai");
-    } catch (err) {
-      add("Chyba", "Nelze se spojit se serverem.", "ai");
+      data = JSON.parse(raw);
+    } catch {
+      data = null;
     }
+
+    if (data && typeof data === "object") {
+      // ✅ zobraz jen textovou část
+      const mainText =
+        data.text ??
+        data.display?.text ??
+        data.message ??
+        raw;
+
+      add("AI", mainText, "ai");
+
+      renderDebug(data);
+
+    } else {
+      // fallback — čistý text
+      add("AI", raw, "ai");
+      renderDebug(null, raw);
+    }
+
+  } catch (err) {
+    add("Chyba", "Nelze se spojit se serverem.", "ai");
+  }
+}
+
+function renderDebug(data, rawText = null) {
+  if (!debugToggle.checked) {
+    debugPanel.style.display = "none";
+    debugContent.textContent = "";
+    return;
   }
 
-  function add(author, text, cls) {
-    const div = document.createElement("div");
-    div.className = "msg " + cls;
-    div.innerHTML = `<strong>${author}:</strong> ${text}`;
-    chat.appendChild(div);
-    chat.scrollTop = chat.scrollHeight;
+  debugPanel.style.display = "block";
+
+  if (data) {
+    // odstraníme běžně zobrazované texty
+    const dbg = { ...data };
+    delete dbg.text;
+    delete dbg.message;
+    if (dbg.display) delete dbg.display;
+
+    debugContent.textContent = JSON.stringify(dbg, null, 2);
+  } else {
+    debugContent.textContent = rawText || "";
   }
+}
+
+function add(author, text, cls) {
+  const div = document.createElement("div");
+  div.className = "msg " + cls;
+  div.innerHTML = `<strong>${author}:</strong> ${escapeHtml(text)}`;
+  chat.appendChild(div);
+  chat.scrollTop = chat.scrollHeight;
+}
+
+function escapeHtml(str) {
+  return str
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;");
+}
 </script>
 
 </body>
