@@ -154,11 +154,11 @@ body {
 
 <!-- PLAYER -->
 <div class="flex justify-center pb-2">
-  <input id="player"
-         value="adam"
-         class="bg-[#1f1713] border border-yellow-700/40
-                text-amber-200 px-3 py-1 rounded-lg text-sm
-                focus:outline-none" />
+  <select id="player"
+        class="bg-[#1f1713] border border-yellow-700/40
+               text-amber-200 px-3 py-1 rounded-lg text-sm
+               focus:outline-none">
+</select>
 </div>
 
 <!-- NÁSTĚNKA -->
@@ -238,6 +238,32 @@ async function loadPublicWall() {
     wallContent.appendChild(error);
 
     setTimeout(autoShrinkBubbles, 0);
+  }
+}
+
+async function loadPlayers() {
+  try {
+    const res = await fetch("/public.json"); // uprav cestu pokud je jinde
+    const data = await res.json();
+
+    const select = document.getElementById("player");
+    select.innerHTML = "";
+
+    Object.values(data).forEach(user => {
+      if (!user.name) return;
+
+      const option = document.createElement("option");
+      option.value = user.name.toLowerCase();
+      option.textContent = user.name;
+
+      select.appendChild(option);
+    });
+
+    // default výběr
+    select.value = "adam";
+
+  } catch (err) {
+    console.error("Nelze načíst public.json", err);
   }
 }
 
@@ -423,6 +449,7 @@ function escapeHtml(str) {
 /* ================= START ================= */
 
 loadPublicWall();
+loadPlayers();
 setInterval(loadPublicWall, 15000);
 
 </script>
