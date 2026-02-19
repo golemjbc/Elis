@@ -74,11 +74,17 @@ body {
   transition: transform 0.25s ease, opacity 0.25s ease;
   opacity: 0.4;
 
-  /* 👇 NOVÉ */
   font-size: 14px;
   line-height: 1.3em;
+
   max-height: calc(1.3em * 3);
   overflow: hidden;
+
+  /* 👇 DŮLEŽITÉ */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 
@@ -250,6 +256,28 @@ function updateTimelineScale(container) {
   });
 }
 
+function autoShrinkBubbles() {
+  const bubbles = document.querySelectorAll(".timeline-bubble");
+
+  bubbles.forEach(bubble => {
+
+    // reset velikosti
+    bubble.style.fontSize = "14px";
+
+    // pokud přetéká → zmenšuj
+    while (
+      bubble.scrollHeight > bubble.clientHeight &&
+      parseFloat(window.getComputedStyle(bubble).fontSize) > 10
+    ) {
+      const currentSize =
+        parseFloat(window.getComputedStyle(bubble).fontSize);
+
+      bubble.style.fontSize = (currentSize - 0.5) + "px";
+    }
+  });
+}
+
+
 wallContent.addEventListener("scroll", function() {
   updateTimelineScale(this);
 });
@@ -350,6 +378,9 @@ async function send() {
     }
 
     loadPublicWall();
+
+    setTimeout(autoShrinkBubbles, 0);
+
 
   } catch {
     hideThinking();
