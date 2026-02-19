@@ -1,231 +1,180 @@
 <!DOCTYPE html>
 <html lang="cs">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Víkend AI – Chat</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Víkend AI – Chat</title>
 
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: #eee;
-      font-family: system-ui, sans-serif;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
+<script src="https://cdn.tailwindcss.com"></script>
 
-    header {
-      padding: 8px 12px;
-      background: #1b1b1b;
-      display: flex;
-      gap: 8px;
-      align-items: center;
-      border-bottom: 1px solid #222;
-    }
+<style>
 
-    header input {
-      background: #111;
-      color: #eee;
-      border: 1px solid #333;
-      padding: 6px 8px;
-      border-radius: 4px;
-      width: 200px;
-    }
+/* ================= GOLD BACKGROUND ================= */
 
-    /* =========================
-       📜 VEŘEJNÁ NÁSTĚNKA
-       ========================= */
-    #publicWall {
-      background: #141414;
-      border-bottom: 1px solid #222;
-      padding: 12px 16px;
-      max-height: 30vh;
-      overflow-y: auto;
-    }
+body {
+  margin: 0;
+  background: linear-gradient(
+    130deg,
+    #2b211c,
+    #3a2c25,
+    #1f1713,
+    #3a2c25
+  );
+  background-size: 300% 300%;
+  animation: gradientMove 20s ease infinite;
+  overflow-x: hidden;
+}
 
-    .wall-header {
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-      opacity: 0.7;
-      margin-bottom: 8px;
-    }
+@keyframes gradientMove {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 
-    .wall-item {
-      font-size: 14px;
-      padding: 6px 0;
-      border-bottom: 1px dashed #2a2a2a;
-      opacity: 0.9;
-    }
+/* ================= GOLD GLASS ================= */
 
-    .wall-item:last-child {
-      border-bottom: none;
-    }
+.glass {
+  position: relative;
+  background: rgba(255,215,150,0.05);
+  border: 1px solid rgba(212,175,55,0.25);
+  border-radius: 26px;
+  box-shadow:
+    0 30px 80px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,215,150,0.4),
+    0 0 60px rgba(212,175,55,0.15);
+  overflow: hidden;
+}
 
-    #chat {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-    }
+/* ================= TIMELINE ================= */
 
-    /* ================= CHAT ================= */
+.timeline-wrapper {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  padding: 8px 24px;
+  gap: 12px;
+}
 
-    .msg {
-      max-width: 85%;
-      padding: 10px 12px;
-      border-radius: 12px;
-      margin-bottom: 12px;
-      word-wrap: break-word;
-      animation: fadeIn 0.2s ease-out;
-    }
+.timeline-wrapper::-webkit-scrollbar { display:none; }
 
-    .msg.user {
-      background: #1e2a3a;
-      color: #cfe4ff;
-      margin-left: auto;
-      border-bottom-right-radius: 4px;
-    }
+.timeline-bubble {
+  scroll-snap-align: center;
+  padding: 12px 18px;
+  border-radius: 24px;
+  min-width: 200px;
+  background: rgba(255,215,150,0.05);
+  border: 1px solid rgba(212,175,55,0.25);
+  box-shadow:
+    0 20px 60px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,215,150,0.4);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0.4;
+}
 
-    .msg.ai {
-      background: #1a1a1a;
-      color: #eee;
-      margin-right: auto;
-      border-bottom-left-radius: 4px;
-    }
+.timeline-bubble.active {
+  box-shadow:
+    0 0 120px rgba(212,175,55,0.6),
+    0 30px 80px rgba(0,0,0,0.7);
+}
 
-    .msg strong {
-      display: block;
-      font-size: 12px;
-      opacity: 0.6;
-      margin-bottom: 4px;
-    }
+/* ================= CHAT ================= */
 
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(2px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+#chat {
+  flex: 1;
+  overflow-y: auto;
+}
 
-    /* ================= THINKING ================= */
+#chat::-webkit-scrollbar { width:4px; }
+#chat::-webkit-scrollbar-thumb {
+  background: rgba(212,175,55,0.4);
+  border-radius: 10px;
+}
 
-    .thinking {
-      font-style: italic;
-      opacity: 0.85;
-    }
+/* ================= FLOATING INPUT ================= */
 
-    .dots::after {
-      content: "";
-      animation: dots 1.4s infinite;
-    }
+.input-wrapper {
+  position: fixed;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 94%;
+  max-width: 520px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(30,22,18,0.95);
+  border: 1px solid rgba(212,175,55,0.3);
+  border-radius: 40px;
+  padding: 6px 8px;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+}
 
-    @keyframes dots {
-      0% { content: ""; }
-      25% { content: "."; }
-      50% { content: ".."; }
-      75% { content: "..."; }
-    }
+/* ================= THINKING DOTS ================= */
 
-    /* ================= FOOTER ================= */
+.dots::after {
+  content: "";
+  animation: dots 1.4s infinite;
+}
 
-    footer {
-      display: flex;
-      padding: 10px;
-      background: #1b1b1b;
-      gap: 10px;
-      border-top: 1px solid #222;
-      align-items: center;
-    }
+@keyframes dots {
+  0% { content: ""; }
+  25% { content: "."; }
+  50% { content: ".."; }
+  75% { content: "..."; }
+}
 
-    footer input[type="text"] {
-      flex: 1;
-      background: #111;
-      color: #eee;
-      border: 1px solid #333;
-      padding: 10px;
-      border-radius: 4px;
-    }
-
-    button {
-      background: #444;
-      color: #fff;
-      border: none;
-      padding: 10px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-    }
-
-    button:hover {
-      background: #666;
-    }
-
-    /* ================= DEBUG ================= */
-
-    #debugPanel {
-      display: none;
-      border-top: 1px solid #222;
-      background: #0c0c0c;
-      padding: 12px;
-      max-height: 240px;
-      overflow-y: auto;
-      font-size: 12px;
-    }
-
-    #debugPanel pre {
-      white-space: pre-wrap;
-      color: #9f9;
-    }
-
-    .debug-label {
-      font-size: 13px;
-      opacity: 0.8;
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-  </style>
+</style>
 </head>
 
-<body>
+<body class="flex flex-col h-screen text-amber-100 overflow-hidden">
 
-<header>
-  <span>Player:</span>
-  <input id="player" value="adam" />
+<!-- HEADER -->
+<header class="flex items-center justify-center pt-3 pb-2">
+  <div class="text-2xl tracking-widest text-yellow-600 font-semibold">
+    ELIS
+  </div>
 </header>
 
-<!-- 📜 VEŘEJNÁ NÁSTĚNKA -->
-<div id="publicWall">
-  <div class="wall-header">📜 Veřejná nástěnka</div>
-  <div id="wallContent"></div>
+<!-- PLAYER -->
+<div class="flex justify-center pb-2">
+  <input id="player"
+         value="adam"
+         class="bg-[#1f1713] border border-yellow-700/40
+                text-amber-200 px-3 py-1 rounded-lg text-sm
+                focus:outline-none" />
 </div>
 
-<div id="chat"></div>
+<!-- NÁSTĚNKA -->
+<div id="wallSection" class="timeline-wrapper"></div>
 
-<div id="debugPanel">
-  <strong>Debug výstup</strong>
-  <pre id="debugContent"></pre>
+<!-- CHAT -->
+<div id="chat" class="px-6 pt-4 space-y-6 max-w-2xl mx-auto"
+     style="padding-bottom: 140px;"></div>
+
+<!-- INPUT -->
+<div class="input-wrapper">
+  <input id="input"
+         type="text"
+         placeholder="Napiš zprávu Elis…"
+         class="flex-1 bg-transparent text-amber-100 px-6 py-2 text-sm focus:outline-none" />
+  <button onclick="send()"
+          class="w-10 h-10 flex items-center justify-center rounded-full
+                 bg-gradient-to-br from-yellow-600 to-amber-400
+                 text-[#2b211c] shadow-md hover:scale-105 transition">
+    ➤
+  </button>
 </div>
-
-<footer>
-  <label class="debug-label">
-    <input type="checkbox" id="debugToggle">
-    debug
-  </label>
-
-  <input id="input" type="text" placeholder="Napiš zprávu Elis…" />
-  <button onclick="send()">OOOdeslat</button>
-</footer>
 
 <script>
+
+/* ================= PŮVODNÍ LOGIKA ================= */
+
 const API_URL = "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/http_trigger";
 
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
 const playerInput = document.getElementById("player");
-const debugToggle = document.getElementById("debugToggle");
-const debugPanel = document.getElementById("debugPanel");
-const debugContent = document.getElementById("debugContent");
-const wallContent = document.getElementById("wallContent");
+const wallContent = document.getElementById("wallSection");
 
 /* ================= VEŘEJNÁ NÁSTĚNKA ================= */
 
@@ -237,25 +186,64 @@ async function loadPublicWall() {
     wallContent.innerHTML = "";
 
     if (!data.items || !data.items.length) {
-      wallContent.innerHTML =
-        "<div class='wall-item'>— zatím žádné záznamy —</div>";
+      const empty = document.createElement("div");
+      empty.className = "timeline-bubble";
+      empty.innerText = "— zatím žádné záznamy —";
+      wallContent.appendChild(empty);
       return;
     }
 
-    data.items.slice(-5).forEach(text => {
+    const last = data.items.slice(-12);
+
+    last.forEach((text, index) => {
       const div = document.createElement("div");
-      div.className = "wall-item";
+      div.className = "timeline-bubble";
       div.textContent = text;
       wallContent.appendChild(div);
+
+      if (index === last.length - 1) {
+        div.classList.add("active");
+        setTimeout(() => {
+          div.scrollIntoView({ inline: "center" });
+        }, 0);
+      }
     });
 
+    updateTimelineScale(wallContent);
+
   } catch {
-    wallContent.innerHTML =
-      "<div class='wall-item'>⚠️ Nelze načíst nástěnku</div>";
+    const error = document.createElement("div");
+    error.className = "timeline-bubble";
+    error.innerText = "⚠️ Nelze načíst nástěnku";
+    wallContent.appendChild(error);
   }
 }
 
-/* ================= THINKING – TVÉ HLÁŠKY ================= */
+function updateTimelineScale(container) {
+  const bubbles = container.querySelectorAll(".timeline-bubble");
+  const center = container.scrollLeft + container.offsetWidth / 2;
+
+  bubbles.forEach(bubble => {
+    const bubbleCenter =
+      bubble.offsetLeft + bubble.offsetWidth / 2;
+
+    const distance = Math.abs(center - bubbleCenter);
+    const maxDistance = container.offsetWidth / 2;
+    const ratio = Math.max(0, 1 - distance / maxDistance);
+
+    const scale = 0.7 + ratio * 0.5;
+    const opacity = 0.2 + ratio * 0.8;
+
+    bubble.style.transform = `scale(${scale})`;
+    bubble.style.opacity = opacity;
+  });
+}
+
+wallContent.addEventListener("scroll", function() {
+  updateTimelineScale(this);
+});
+
+/* ================= THINKING ================= */
 
 const thinkingStates = [
   "Omlouvám se za zpoždění. Elis se chvějí čipy vzrušením",
@@ -264,8 +252,6 @@ const thinkingStates = [
   "Elis má moc zážitků a je pomalejší",
   "Elis se připravuje na další divokou akci"
 ];
-
-/* ================= TICHÉ REAKCE ================= */
 
 const silentResponses = [
   "Elis si to zapamatuje.",
@@ -281,21 +267,27 @@ let stateIndex = 0;
 
 function showThinking() {
   thinkingEl = document.createElement("div");
-  thinkingEl.className = "msg ai thinking";
+  thinkingEl.className = "flex justify-start";
+
+  const inner = document.createElement("div");
+  inner.className = "glass px-5 py-3 rounded-3xl italic";
+
+  thinkingEl.appendChild(inner);
   chat.appendChild(thinkingEl);
-  updateThinkingText();
+
+  updateThinkingText(inner);
 
   thinkingInterval = setInterval(() => {
     stateIndex = (stateIndex + 1) % thinkingStates.length;
-    updateThinkingText();
+    updateThinkingText(inner);
   }, 3000);
 
   chat.scrollTop = chat.scrollHeight;
 }
 
-function updateThinkingText() {
-  thinkingEl.innerHTML =
-    `<strong>Elis</strong>${thinkingStates[stateIndex]}<span class="dots"></span>`;
+function updateThinkingText(element) {
+  element.innerHTML =
+    `<strong>Elis</strong> ${thinkingStates[stateIndex]}<span class="dots"></span>`;
 }
 
 function hideThinking() {
@@ -317,6 +309,7 @@ async function send() {
   if (!text) return;
 
   const player = playerInput.value.trim() || "adam";
+
   add(player, text, "user");
   input.value = "";
   showThinking();
@@ -345,10 +338,6 @@ async function send() {
       add("Elis", reaction, "ai");
     }
 
-    if (debugToggle.checked && data.debug) {
-      renderDebug(data.debug);
-    }
-
     loadPublicWall();
 
   } catch {
@@ -357,27 +346,21 @@ async function send() {
   }
 }
 
-/* ================= DEBUG ================= */
-
-function renderDebug(data) {
-  debugPanel.style.display = "block";
-  debugContent.textContent =
-    JSON.stringify(data, null, 2);
-}
-
-debugToggle.addEventListener("change", () => {
-  if (!debugToggle.checked) {
-    debugPanel.style.display = "none";
-    debugContent.textContent = "";
-  }
-});
-
-/* ================= HELPERS ================= */
-
 function add(author, text, cls) {
   const div = document.createElement("div");
-  div.className = "msg " + cls;
-  div.innerHTML = `<strong>${author}</strong>${escapeHtml(text)}`;
+  div.className = cls === "user"
+    ? "flex justify-end"
+    : "flex justify-start";
+
+  div.innerHTML = `
+    <div class="max-w-[70%] px-5 py-3 rounded-3xl ${
+      cls === "user"
+        ? "bg-gradient-to-br from-yellow-600 to-amber-400 text-[#2b211c]"
+        : "glass"
+    }">
+      <strong>${author}</strong>${escapeHtml(text)}
+    </div>`;
+
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
 }
@@ -393,6 +376,7 @@ function escapeHtml(str) {
 
 loadPublicWall();
 setInterval(loadPublicWall, 15000);
+
 </script>
 
 </body>
