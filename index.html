@@ -207,6 +207,8 @@ async function loadPublicWall() {
       empty.className = "timeline-bubble";
       empty.innerText = "— zatím žádné záznamy —";
       wallContent.appendChild(empty);
+
+      setTimeout(autoShrinkBubbles, 0);
       return;
     }
 
@@ -227,14 +229,18 @@ async function loadPublicWall() {
     });
 
     updateTimelineScale(wallContent);
+    setTimeout(autoShrinkBubbles, 0);
 
   } catch {
     const error = document.createElement("div");
     error.className = "timeline-bubble";
     error.innerText = "⚠️ Nelze načíst nástěnku";
     wallContent.appendChild(error);
+
+    setTimeout(autoShrinkBubbles, 0);
   }
 }
+
 
 function updateTimelineScale(container) {
   const bubbles = container.querySelectorAll(".timeline-bubble");
