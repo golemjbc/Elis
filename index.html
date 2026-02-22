@@ -13,15 +13,12 @@
 
 body {
   margin: 0;
-  background: linear-gradient(
-    130deg,
-    #2b211c,
-    #3a2c25,
-    #1f1713,
-    #3a2c25
-  );
-  background-size: 300% 300%;
-  animation: gradientMove 20s ease infinite;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,215,150,0.15), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(212,175,55,0.1), transparent 50%),
+    linear-gradient(160deg, #0f0f14, #1a1b22, #111218);
+
+  background-attachment: fixed;
   overflow-x: hidden;
 }
 
@@ -35,36 +32,36 @@ body {
 
 .glass {
   position: relative;
-  background: rgba(255,215,150,0.05);
-  border: 1px solid rgba(212,175,55,0.25);
+
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+
+  border: 1px solid rgba(255,255,255,0.15);
   border-radius: 26px;
+
   box-shadow:
     0 30px 80px rgba(0,0,0,0.6),
-    inset 0 1px 0 rgba(255,215,150,0.4),
-    0 0 60px rgba(212,175,55,0.15);
-  overflow: hidden;
+    inset 0 1px 0 rgba(255,255,255,0.25);
 }
 
 /* ================= GOLD USER BUBBLE ================= */
 
 .gold-bubble {
   position: relative;
+
   background: linear-gradient(
     145deg,
-    #d4af37,
-    #f1c75b,
-    #c9971e
+    #f5d36c,
+    #e6b84f,
+    #d4a437
   );
 
   border-radius: 26px;
 
   box-shadow:
-    0 25px 70px rgba(0,0,0,0.7),
-    inset 0 2px 4px rgba(255,255,255,0.3),
-    inset 0 -4px 12px rgba(0,0,0,0.4),
-    0 0 30px rgba(212,175,55,0.4);
-
-  overflow: hidden;
+    0 15px 40px rgba(212,175,55,0.5),
+    inset 0 1px 3px rgba(255,255,255,0.4);
 }
 
 /* jemný horní lesk */
