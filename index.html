@@ -388,6 +388,16 @@ async function loadPlayers() {
       select.appendChild(option);
     });
 
+    // 🔁 Obnov posledního hráče
+    const savedPlayer = localStorage.getItem("lastPlayer");
+
+    if (savedPlayer) {
+      select.value = savedPlayer;
+
+      if (select.value) {
+        loadHistory(savedPlayer);
+      }
+    }
    
   } catch (err) {
     console.error("Nelze načíst hráče", err);
@@ -621,6 +631,10 @@ loadPlayers();
 setInterval(loadPublicWall, 15000);
 playerInput.addEventListener("change", function () {
   if (!this.value) return;
+
+  // uložit do localStorage
+  localStorage.setItem("lastPlayer", this.value);
+
   loadHistory(this.value);
 });
 
