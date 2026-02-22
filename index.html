@@ -469,7 +469,9 @@ async function loadHistory(player) {
       );
     });
 
-    chat.scrollTop = chat.scrollHeight;
+    setTimeout(() => {
+      chat.scrollTop = chat.scrollHeight;
+    }, 50);
 
   } catch (err) {
     console.error("Chyba při načítání historie", err);
