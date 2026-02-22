@@ -45,8 +45,26 @@ body {
   100% { background-position: 0% 50%; }
 }
 
-/* ================= GOLD GLASS ================= */
+/* ===== EDGE LIGHT ANIMATION ===== */
 
+@keyframes edgeShift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+
+/* ================= GOLD GLASS ================= */
+.glass,
+.gold-bubble {
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.glass:hover,
+.gold-bubble:hover {
+  transform: translateY(-4px) scale(1.02);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,0.6);
+}
 .glass {
   position: relative;
   transform: translateZ(0);
@@ -64,6 +82,17 @@ body {
     inset 0 -15px 35px rgba(0,0,0,0.7);
 }
 /* ================= GOLD USER BUBBLE ================= */
+
+.glass {
+  transition: all 0.3s ease;
+}
+
+.glass:hover {
+  border-color: rgba(255,255,255,0.5);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,0.6),
+    0 0 40px rgba(255,215,150,0.25);
+}
 
 .gold-bubble {
   position: relative;
@@ -87,6 +116,17 @@ body {
     0 10px 30px rgba(212,175,55,0.25),
     inset 0 2px 4px rgba(255,255,255,0.25),
     inset 0 -15px 30px rgba(0,0,0,0.6);
+}
+
+.gold-bubble {
+  transition: all 0.3s ease;
+}
+
+.gold-bubble:hover {
+  border-color: rgba(255,215,150,0.7);
+  box-shadow:
+    0 40px 120px rgba(0,0,0,0.8),
+    0 0 60px rgba(212,175,55,0.35);
 }
 
 /* jemný horní lesk */
@@ -198,6 +238,23 @@ body {
   25% { content: "."; }
   50% { content: ".."; }
   75% { content: "..."; }
+}
+
+/* ===== APPEAR ANIMATION ===== */
+
+.appear {
+  animation: glowIn 0.5s ease forwards;
+}
+
+@keyframes glowIn {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 </style>
@@ -491,6 +548,12 @@ async function send() {
   }
 }
 
+chat.addEventListener("scroll", () => {
+  const scrollY = chat.scrollTop;
+  document.body.style.backgroundPosition =
+    `0px ${scrollY * 0.05}px, 0px ${scrollY * 0.03}px, 0px 0px`;
+});
+
 function add(author, text, cls) {
   const div = document.createElement("div");
   div.className = cls === "user"
@@ -507,6 +570,7 @@ function add(author, text, cls) {
   </div>`;
 
   chat.appendChild(div);
+  div.firstElementChild.classList.add("appear");
   chat.scrollTop = chat.scrollHeight;
 }
 
