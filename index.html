@@ -186,7 +186,7 @@ body {
 
 /* ================= PŮVODNÍ LOGIKA ================= */
 
-const API_URL = "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/http_trigger";
+const API_BASE = "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api";
 
 const chat = document.getElementById("chat");
 const input = document.getElementById("input");
@@ -199,7 +199,7 @@ async function loadPublicWall() {
   try {
 
     const res = await fetch(
-      "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/timeline"
+      API_BASE + "/timeline"
     );
 
     const data = await res.json();
@@ -246,11 +246,18 @@ async function loadPublicWall() {
 
 async function loadPlayers() {
   try {
-    const res = await fetch(API_URL + "?mode=players");
+    const res = await fetch(API_BASE + "/players");
     const data = await res.json();
 
     const select = document.getElementById("player");
     select.innerHTML = "";
+
+    const placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "— vyber hráče —";
+    placeholder.disabled = true;
+    placeholder.selected = true;
+    select.appendChild(placeholder);
 
     data.players.forEach(player => {
       const option = document.createElement("option");
@@ -259,9 +266,7 @@ async function loadPlayers() {
       select.appendChild(option);
     });
 
-    // default hráč
-    select.value = "???";
-
+   
   } catch (err) {
     console.error("Nelze načíst hráče", err);
   }
@@ -380,14 +385,19 @@ async function send() {
   const text = input.value.trim();
   if (!text) return;
 
-  const player = playerInput.value.trim() || "adam";
+  const player = playerInput.value;
+
+  if (!player) {
+    alert("Vyber hráče.");
+    return;
+  }
 
   add(player, text, "user");
   input.value = "";
   showThinking();
 
   try {
-    const res = await fetch(API_URL, {
+    const res = await fetch(API_BASE + "/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ message: text, player })
@@ -440,6 +450,30 @@ function add(author, text, cls) {
   chat.scrollTop = chat.scrollHeight;
 }
 
+async function loadHistory(player) {
+  try {
+
+    const res = await fetch(
+      API_BASE + "/history?player=" + player
+    );
+
+    const data = await res.json();
+
+    chat.innerHTML = ""; // vyčistit chat
+
+    data.forEach(msg => {
+      add(
+        msg.role === "user" ? player : "Elis",
+        msg.content,
+        msg.role
+      );
+    });
+
+  } catch (err) {
+    console.error("Chyba při načítání historie", err);
+  }
+}
+
 function escapeHtml(str) {
   return str
     .replaceAll("&","&amp;")
@@ -452,6 +486,10 @@ function escapeHtml(str) {
 loadPublicWall();
 loadPlayers();
 setInterval(loadPublicWall, 15000);
+playerInput.addEventListener("change", function () {
+  if (!this.value) return;
+  loadHistory(this.value);
+});
 
 </script>
 
