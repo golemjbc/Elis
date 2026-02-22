@@ -438,13 +438,13 @@ function add(author, text, cls) {
     : "flex justify-start";
 
   div.innerHTML = `
-    <div class="max-w-[70%] px-5 py-3 rounded-3xl ${
-      cls === "user"
-        ? "bg-gradient-to-br from-yellow-600 to-amber-400 text-[#2b211c]"
-        : "glass"
-    }">
-      <strong>${author}</strong>${escapeHtml(text)}
-    </div>`;
+  <div class="max-w-[70%] px-5 py-3 rounded-3xl ${
+    cls === "user"
+      ? "bg-gradient-to-br from-yellow-600 to-amber-400 text-[#2b211c]"
+      : "glass"
+  }">
+    ${escapeHtml(text)}
+  </div>`;
 
   chat.appendChild(div);
   chat.scrollTop = chat.scrollHeight;
@@ -468,6 +468,8 @@ async function loadHistory(player) {
         msg.role
       );
     });
+
+    chat.scrollTop = chat.scrollHeight;
 
   } catch (err) {
     console.error("Chyba při načítání historie", err);
