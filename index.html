@@ -22,27 +22,20 @@ body {
   overflow-x: hidden;
 }
 
-body::before {
+.gold-bubble::before {
   content: "";
-  position: fixed;
+  position: absolute;
   inset: 0;
-  background: radial-gradient(
-    circle at center,
-    rgba(255,215,150,0.06),
-    transparent 60%
-  );
-  pointer-events: none;
-}
+  border-radius: 26px;
 
-body::after {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(
-    circle at 50% 40%,
-    rgba(212,175,55,0.12),
-    transparent 65%
+  background: linear-gradient(
+    180deg,
+    rgba(255,255,255,0.25) 0%,
+    rgba(255,255,255,0.12) 20%,
+    transparent 50%
   );
+
+  mix-blend-mode: overlay;
   pointer-events: none;
 }
 
@@ -57,39 +50,43 @@ body::after {
 .glass {
   position: relative;
   transform: translateZ(0);
-  background: rgba(70,50,35,0.65);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
 
-  border: 1px solid rgba(212,175,55,0.2);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(35px);
+  -webkit-backdrop-filter: blur(35px);
+
+  border: 1px solid rgba(255,215,150,0.25);
   border-radius: 26px;
 
   box-shadow:
-    0 30px 80px rgba(0,0,0,0.85),
-    inset 0 1px 0 rgba(255,215,150,0.2),
-    inset 0 -10px 25px rgba(0,0,0,0.6);
+    0 40px 120px rgba(0,0,0,0.9),
+    inset 0 2px 6px rgba(255,255,255,0.25),
+    inset 0 -15px 35px rgba(0,0,0,0.7);
 }
-
 /* ================= GOLD USER BUBBLE ================= */
 
 .gold-bubble {
   position: relative;
   transform: translateZ(0);
+
   background: linear-gradient(
     160deg,
-    #b3831c,
-    #8c6412,
-    #5c3f09
+    #c6932b,
+    #9f6f14,
+    #6b480c
   );
 
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+
+  border: 1px solid rgba(255,215,150,0.35);
   border-radius: 26px;
-  border: 1px solid rgba(212,175,55,0.18);
 
   box-shadow:
-    0 25px 60px rgba(0,0,0,0.9),
-    0 5px 20px rgba(0,0,0,0.6),
-    inset 0 1px 1px rgba(255,255,255,0.12),
-    inset 0 -12px 25px rgba(0,0,0,0.65);
+    0 35px 90px rgba(0,0,0,0.95),
+    0 10px 30px rgba(212,175,55,0.25),
+    inset 0 2px 4px rgba(255,255,255,0.25),
+    inset 0 -15px 30px rgba(0,0,0,0.6);
 }
 
 /* jemný horní lesk */
@@ -503,7 +500,7 @@ function add(author, text, cls) {
   div.innerHTML = `
   <div class="max-w-[70%] px-5 py-3 rounded-3xl ${
     cls === "user"
-      ? "gold-bubble text-[#2b211c]"
+      ? "gold-bubble text-amber-50"
       : "glass"
   }">
     ${escapeHtml(text)}
