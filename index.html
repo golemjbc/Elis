@@ -96,26 +96,18 @@ body {
 
 .gold-bubble {
   position: relative;
-  transform: translateZ(0);
 
-  background: linear-gradient(
-    160deg,
-    #c6932b,
-    #9f6f14,
-    #6b480c
-  );
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
 
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: rgba(212,175,55,0.12);
 
-  border: 1px solid rgba(255,215,150,0.35);
-  border-radius: 26px;
+  border: 1px solid rgba(212,175,55,0.35);
+  border-radius: 28px;
 
   box-shadow:
-    0 35px 90px rgba(0,0,0,0.95),
-    0 10px 30px rgba(212,175,55,0.25),
-    inset 0 2px 4px rgba(255,255,255,0.25),
-    inset 0 -15px 30px rgba(0,0,0,0.6);
+    0 30px 80px rgba(0,0,0,0.6),
+    inset 0 1px 0 rgba(255,215,150,0.25);
 }
 
 .gold-bubble {
