@@ -568,7 +568,7 @@ chat.addEventListener("scroll", () => {
     `0px ${scrollY * 0.05}px, 0px ${scrollY * 0.03}px, 0px 0px`;
 });
 
-function add(author, text, cls) {
+function add(author, text, cls, scroll = true) {
   const div = document.createElement("div");
   div.className = cls === "user"
     ? "flex justify-end"
@@ -585,7 +585,10 @@ function add(author, text, cls) {
 
   chat.appendChild(div);
   div.firstElementChild.classList.add("appear");
-  chat.scrollTop = chat.scrollHeight;
+
+  if (scroll) {
+    chat.scrollTop = chat.scrollHeight;
+  }
 }
 
 async function loadHistory(player) {
@@ -603,9 +606,13 @@ async function loadHistory(player) {
       add(
         msg.role === "user" ? player : "Elis",
         msg.content,
-        msg.role
+        msg.role,
+        false   // NEscrollovat během načítání
       );
     });
+
+    // scroll až po naplnění
+    chat.scrollTop = chat.scrollHeight;
 
     requestAnimationFrame(() => {
       requestAnimationFrame(() => {
