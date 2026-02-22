@@ -197,27 +197,33 @@ const wallContent = document.getElementById("wallSection");
 
 async function loadPublicWall() {
   try {
-    const res = await fetch(API_URL + "?mode=public_log");
+
+    const res = await fetch(
+      "https://aivikend-py-f8ava9bjejh3h6bf.westeurope-01.azurewebsites.net/api/timeline"
+    );
+
     const data = await res.json();
 
     wallContent.innerHTML = "";
 
-    if (!data.items || !data.items.length) {
+    if (!data || !data.length) {
       const empty = document.createElement("div");
       empty.className = "timeline-bubble";
       empty.innerText = "— zatím žádné záznamy —";
       wallContent.appendChild(empty);
-
-      setTimeout(autoShrinkBubbles, 0);
       return;
     }
 
-    const last = data.items.slice(-12);
+    // vezmeme posledních 12
+    const last = data.slice(-12);
 
-    last.forEach((text, index) => {
+    last.forEach((item, index) => {
+
       const div = document.createElement("div");
       div.className = "timeline-bubble";
-      div.textContent = text;
+
+      div.textContent = item.history;
+
       wallContent.appendChild(div);
 
       if (index === last.length - 1) {
@@ -228,16 +234,13 @@ async function loadPublicWall() {
       }
     });
 
-    updateTimelineScale(wallContent);
-    setTimeout(autoShrinkBubbles, 0);
+  } catch (err) {
 
-  } catch {
     const error = document.createElement("div");
     error.className = "timeline-bubble";
     error.innerText = "⚠️ Nelze načíst nástěnku";
     wallContent.appendChild(error);
 
-    setTimeout(autoShrinkBubbles, 0);
   }
 }
 
